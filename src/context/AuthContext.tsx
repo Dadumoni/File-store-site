@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userData,
     loading,
-    isAdmin: userData?.isAdmin || false,
+    isAdmin: user?.email === import.meta.env.VITE_ADMIN_EMAIL || userData?.isAdmin || false,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

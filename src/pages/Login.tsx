@@ -32,6 +32,7 @@ export default function Login() {
 
       if (!userDoc.exists()) {
         const username = user.email?.split('@')[0] || 'user';
+        const isAdmin = user.email === import.meta.env.VITE_ADMIN_EMAIL;
         const userData = {
           userId: username,
           username: user.displayName || username,
@@ -40,7 +41,7 @@ export default function Login() {
           totalFiles: 0,
           totalViews: 0,
           balance: 0,
-          isAdmin: user.email === 'dadunath87@gmail.com',
+          isAdmin: isAdmin,
           isBanned: false,
         };
 
@@ -51,7 +52,12 @@ export default function Login() {
           throw err;
         }
       }
-      navigate('/dashboard');
+
+      if (user.email === import.meta.env.VITE_ADMIN_EMAIL) {
+        navigate('/admin/overview');
+      } else {
+        navigate('/dashboard/files');
+      }
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/operation-not-allowed') {
@@ -76,12 +82,17 @@ export default function Login() {
 
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
-        navigate('/dashboard');
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        if (userCredential.user.email === import.meta.env.VITE_ADMIN_EMAIL) {
+          navigate('/admin/overview');
+        } else {
+          navigate('/dashboard/files');
+        }
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         const defaultId = email.split('@')[0];
+        const isAdmin = email === import.meta.env.VITE_ADMIN_EMAIL;
 
         const userData = {
           userId: defaultId,
@@ -92,7 +103,7 @@ export default function Login() {
           totalFiles: 0,
           totalViews: 0,
           balance: 0,
-          isAdmin: email === 'dadunath87@gmail.com',
+          isAdmin: isAdmin,
           isBanned: false,
         };
 
@@ -103,7 +114,11 @@ export default function Login() {
           throw err;
         }
 
-        navigate('/dashboard');
+        if (isAdmin) {
+          navigate('/admin/overview');
+        } else {
+          navigate('/dashboard/files');
+        }
       }
     } catch (err: any) {
       console.error(err);

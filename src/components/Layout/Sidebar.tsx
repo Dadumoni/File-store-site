@@ -55,26 +55,26 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-8">
-        <div>
-          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">User Menu</p>
-          <nav className="space-y-1">
-            {userLinks.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) => cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  isActive ? "bg-emerald-50 text-emerald-600" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
-                )}
-              >
-                <link.icon className="w-5 h-5" />
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-
-        {isAdmin && (
+        {!isAdmin ? (
+          <div>
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">User Menu</p>
+            <nav className="space-y-1">
+              {userLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) => cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    isActive ? "bg-emerald-50 text-emerald-600" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                  )}
+                >
+                  <link.icon className="w-5 h-5" />
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        ) : (
           <div>
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">Admin Panel</p>
             <nav className="space-y-1">

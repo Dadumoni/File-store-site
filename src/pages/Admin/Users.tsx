@@ -82,7 +82,7 @@ export default function Users() {
                       <div>
                         <p className="font-bold text-neutral-900 flex items-center gap-1">
                           {u.username}
-                          {u.isAdmin && <Shield className="w-3 h-3 text-blue-600" title="Admin" />}
+                          {u.isAdmin && <Shield className="w-3 h-3 text-blue-600" />}
                         </p>
                         <p className="text-xs text-neutral-500">ID: {u.userId}</p>
                       </div>
