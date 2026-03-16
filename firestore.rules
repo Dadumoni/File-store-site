@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Telegram ID)
+    // Fields:
+    //   - userId: string (required)
+    //   - username: string (required)
+    //   - password: string (required)
+    //   - createdAt: timestamp (required)
+    //   - totalFiles: number (required)
+    //   - totalViews: number (required)
+    //   - balance: number (required)
+    //   - isAdmin: bool (required)
+    //   - isBanned: bool (required)
+    //
+    // Collection: files
+    // Document ID: fileId
+    // Fields:
+    //   - fileId: string (required)
+    //   - ownerId: string (required)
+    //   - fileName: string (required)
+    //   - fileSize: number (required)
+    //   - fileType: string (required)
+    //   - telegramFileId: string (required)
+    //   - channelMessageId: string (required)
+    //   - shareLink: string (required)
+    //   - views: number (required)
+    //   - downloads: number (required)
+    //   - createdAt: timestamp (required)
+    //   - isDeleted: bool (required)
+    //
+    // Collection: analytics
+    // Document ID: auto-generated
+    // Fields:
+    //   - fileId: string (required)
+    //   - userId: string (required)
+    //   - event: string (required, 'view' or 'download')
+    //   - timestamp: timestamp (required)
+    //   - ipHash: string (required)
+    //   - country: string (optional)
+    //
+    // Collection: withdrawals
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required)
+    //   - amount: number (required)
+    //   - method: string (required)
+    //   - address: string (required)
+    //   - status: string (required, 'pending', 'approved', 'rejected')
+    //   - requestedAt: timestamp (required)
+    //   - processedAt: timestamp (optional)
+    //   - adminNote: string (optional)
+    //
+    // Collection: settings
+    // Document ID: global
+    // Fields:
+    //   - minWithdrawal: number (required)
+    //   - rewardPerView: number (required)
+    //   - botToken: string (required)
+    //   - maintenanceMode: bool (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true) ||
+        (request.auth.token.email == "dadunath87@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUser(data) {
+      let requiredFields = ['userId', 'username', 'createdAt', 'totalFiles', 'totalViews', 'balance', 'isAdmin', 'isBanned'];
+      return data.keys().hasAll(requiredFields) &&
+             data.userId is string && data.userId.size() > 0 &&
+             data.username is string && data.username.size() > 0 &&
+             (!('password' in data) || (data.password is string && data.password.size() >= 8)) &&
+             (!('email' in data) || (data.email is string && isValidEmail(data.email))) &&
+             data.createdAt is timestamp &&
+             data.totalFiles is number &&
+             data.totalViews is number &&
+             data.balance is number &&
+             data.isAdmin is bool &&
+             data.isBanned is bool;
+    }
+
+    function isValidFile(data) {
+      return data.keys().hasAll(['fileId', 'ownerId', 'fileName', 'fileSize', 'fileType', 'telegramFileId', 'channelMessageId', 'shareLink', 'views', 'downloads', 'createdAt', 'isDeleted']) &&
+             data.fileId is string &&
+             data.ownerId is string &&
+             data.fileName is string && data.fileName.size() > 0 &&
+             data.fileSize is number &&
+             data.fileType is string &&
+             data.telegramFileId is string &&
+             data.channelMessageId is string &&
+             data.shareLink is string &&
+             data.views is number &&
+             data.downloads is number &&
+             data.createdAt is timestamp &&
+             data.isDeleted is bool;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.isAdmin == false;
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.isAdmin == resource.data.isAdmin && request.resource.data.balance == resource.data.balance) || isAdmin();
+    }
+
+    match /files/{fileId} {
+      allow read: if true; // Publicly readable for sharing
+      allow create: if isAuthenticated() && isValidFile(request.resource.data) && request.resource.data.ownerId == request.auth.uid;
+      allow update: if (isAuthenticated() && resource.data.ownerId == request.auth.uid && isValidFile(request.resource.data) && request.resource.data.ownerId == resource.data.ownerId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /analytics/{docId} {
+      allow read: if isAdmin();
+      allow create: if true; // Anyone can trigger a view/download event
+    }
+
+    match /withdrawals/{wdId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && request.resource.data.status == 'pending';
+      allow update: if isAdmin();
+    }
+
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

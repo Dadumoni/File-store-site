@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Telegram user ID" },
+        "username": { "type": "string" },
+        "password": { "type": "string", "description": "Hashed 12-char password" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "totalFiles": { "type": "number" },
+        "totalViews": { "type": "number" },
+        "balance": { "type": "number" },
+        "isAdmin": { "type": "boolean" },
+        "isBanned": { "type": "boolean" }
+      },
+      "required": ["userId", "username", "password", "createdAt", "totalFiles", "totalViews", "balance", "isAdmin", "isBanned"]
+    },
+    "File": {
+      "title": "File",
+      "description": "File metadata and sharing info",
+      "type": "object",
+      "properties": {
+        "fileId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "fileType": { "type": "string" },
+        "telegramFileId": { "type": "string" },
+        "channelMessageId": { "type": "string" },
+        "shareLink": { "type": "string" },
+        "views": { "type": "number" },
+        "downloads": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isDeleted": { "type": "boolean" }
+      },
+      "required": ["fileId", "ownerId", "fileName", "fileSize", "fileType", "telegramFileId", "channelMessageId", "shareLink", "views", "downloads", "createdAt", "isDeleted"]
+    },
+    "Analytics": {
+      "title": "Analytics",
+      "description": "Event tracking for views and downloads",
+      "type": "object",
+      "properties": {
+        "fileId": { "type": "string" },
+        "userId": { "type": "string" },
+        "event": { "type": "string", "enum": ["view", "download"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "ipHash": { "type": "string" },
+        "country": { "type": "string" }
+      },
+      "required": ["fileId", "userId", "event", "timestamp", "ipHash"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal",
+      "description": "Withdrawal request information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "requestedAt": { "type": "string", "format": "date-time" },
+        "processedAt": { "type": "string", "format": "date-time" },
+        "adminNote": { "type": "string" }
+      },
+      "required": ["userId", "amount", "method", "address", "status", "requestedAt"]
+    },
+    "GlobalSettings": {
+      "title": "GlobalSettings",
+      "description": "Global application settings",
+      "type": "object",
+      "properties": {
+        "minWithdrawal": { "type": "number" },
+        "rewardPerView": { "type": "number" },
+        "botToken": { "type": "string" },
+        "maintenanceMode": { "type": "boolean" }
+      },
+      "required": ["minWithdrawal", "rewardPerView", "botToken", "maintenanceMode"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User documents"
+    },
+    "files/{fileId}": {
+      "schema": "File",
+      "description": "File documents"
+    },
+    "analytics/{docId}": {
+      "schema": "Analytics",
+      "description": "Analytics events"
+    },
+    "withdrawals/{wdId}": {
+      "schema": "Withdrawal",
+      "description": "Withdrawal requests"
+    },
+    "settings/global": {
+      "schema": "GlobalSettings",
+      "description": "Global configuration"
+    }
+  }
+}

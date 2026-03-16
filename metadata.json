@@ -1,0 +1,5 @@
+{
+  "name": "TeleShare Earn",
+  "description": "A Telegram file sharing platform where users can earn rewards for views and downloads.",
+  "requestFramePermissions": []
+}
